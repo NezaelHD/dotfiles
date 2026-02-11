@@ -1,0 +1,13 @@
+[user]
+	name = Nezael
+	email = contact.nezael@protonmail.com
+[pull]
+	ff = only
+[init]
+	defaultBranch = main
+[merge]
+	conflictStyle = zdiff3
+[rerere]
+	enabled = true
+[pull]
+	rebase = true
