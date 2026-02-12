@@ -1,179 +1,117 @@
-############################################################################
-#                                                                          #
-#               ------- Useful Docker Aliases --------                     #
-#     daws <svc> <cmd> <opts> : aws cli in docker with <svc> <cmd> <opts>  #
-#     dc             : docker compose                                      #
-#     dcu            : docker compose up -d                                #
-#     dcd            : docker compose down                                 #
-#     dcr            : docker compose run                                  #
-#     dex <container>: execute a bash shell inside the RUNNING <container> #
-#     di <container> : docker inspect <container>                          #
-#     dim            : docker images                                       #
-#     dip            : IP addresses of all running containers              #
-#     dl <container> : docker logs -f <container>                          #
-#     dnames         : names of all running containers                     #
-#     dps            : docker ps                                           #
-#     dpsa           : docker ps -a                                        #
-#     drmc           : remove all exited containers                        #
-#     drmid          : remove all dangling images                          #
-#     drun <image>   : execute a bash shell in NEW container from <image>  #
-#     dsr <container>: stop then remove <container>                        #
-#     dworkill       : stop all container with worker in the name          #
-#                                                                          #
-############################################################################
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-function dnames-fn {
-	for ID in `docker ps | awk '{print $1}' | grep -v 'CONTAINER'`
-	do
-    	docker inspect $ID | grep Name | head -1 | awk '{print $2}' | sed 's/,//g' | sed 's%/%%g' | sed 's/"//g'
-	done
-}
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-function dip-fn {
-    echo "IP addresses of all named running containers"
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
 
-    for DOC in `dnames-fn`
-    do
-        IP=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$DOC"`
-        OUT+=$DOC'\t'$IP'\n'
-    done
-    echo -e $OUT | column -t
-    unset OUT
-}
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time Oh My Zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="robbyrussell"
 
-function dex-fn {
-	docker exec -it $1 ${2:-bash}
-}
+# Set list of themes to pick from when loading at random
+# Setting this variable when ZSH_THEME=random will cause zsh to load
+# a theme from this variable instead of looking in $ZSH/themes/
+# If set to an empty array, this variable will have no effect.
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
-function di-fn {
-	docker inspect $1
-}
+# Uncomment the following line to use case-sensitive completion.
+# CASE_SENSITIVE="true"
 
-function dl-fn {
-	docker logs -f $1
-}
+# Uncomment the following line to use hyphen-insensitive completion.
+# Case-sensitive completion must be off. _ and - will be interchangeable.
+# HYPHEN_INSENSITIVE="true"
 
-function drun-fn {
-	docker run -it $1 $2
-}
+# Uncomment one of the following lines to change the auto-update behavior
+# zstyle ':omz:update' mode disabled  # disable automatic updates
+# zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
-function dcr-fn {
-	docker compose run $@
-}
+# Uncomment the following line to change how often to auto-update (in days).
+# zstyle ':omz:update' frequency 13
 
-function dsr-fn {
-	docker stop $1;docker rm $1
-}
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS="true"
 
-function drmc-fn {
-       docker rm $(docker ps --all -q -f status=exited)
-}
+# Uncomment the following line to disable colors in ls.
+# DISABLE_LS_COLORS="true"
 
-function drmid-fn {
-       imgs=$(docker images -q -f dangling=true)
-       [ ! -z "$imgs" ] && docker rmi "$imgs" || echo "no dangling images."
-}
+# Uncomment the following line to disable auto-setting terminal title.
+# DISABLE_AUTO_TITLE="true"
 
-function dlab {
-       docker ps --filter="label=$1" --format="{{.ID}}"
-}
+# Uncomment the following line to enable command auto-correction.
+# ENABLE_CORRECTION="true"
 
-function dc-fn {
-        docker compose $*
-}
+# Uncomment the following line to display red dots whilst waiting for completion.
+# You can also set it to another string to have that shown instead of the default red dots.
+# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
+# COMPLETION_WAITING_DOTS="true"
 
-function d-aws-cli-fn {
-    docker run \
-           -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-           -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
-           -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-           amazon/aws-cli:latest $1 $2 $3
-}
+# Uncomment the following line if you want to disable marking untracked files
+# under VCS as dirty. This makes repository status check for large repositories
+# much, much faster.
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
 
-function d-worker-kill {
-    docker ps --filter "name=worker" --format "{{.ID}}" | xargs -r docker kill
-}
+# Uncomment the following line if you want to change the command execution time
+# stamp shown in the history command output.
+# You can set one of the optional three formats:
+# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
+# or set a custom format using the strftime function format specifications,
+# see 'man strftime' for details.
+# HIST_STAMPS="mm/dd/yyyy"
 
+# Would you like to use another custom folder than $ZSH/custom?
+# ZSH_CUSTOM=/path/to/new-custom-folder
 
-alias daws=d-aws-cli-fn
-alias dc=dc-fn
-alias dcu="docker compose up -d"
-alias dcd="docker compose down"
-alias dcr=dcr-fn
-alias dex=dex-fn
-alias di=di-fn
-alias dim="docker images"
-alias dip=dip-fn
-alias dl=dl-fn
-alias dnames=dnames-fn
-alias dps="docker ps"
-alias dpsa="docker ps -a"
-alias drmc=drmc-fn
-alias drmid=drmid-fn
-alias drun=drun-fn
-alias dsp="docker system prune --all"
-alias dsr=dsr-fn
-alias dworkill=d-worker-kill
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+plugins=(git)
 
-############################################################################
-#                                                                          #
-#               -------- Useful Git Aliases --------                       #
-#                                                                          #
-#     gs              : git status                                         #
-#     gst             : git status (short + branch info)                   #
-#     gl              : git log                                            #
-#     gitlg           : pretty git log graph (branches + author + time)    #
-#     ga              : git add                                            #
-#     gaa             : git add all changes (tracked + untracked)          #
-#     gal             : git add current directory                          #
-#     gall            : git add current directory                          #
-#     gc <msg>        : git commit with message                            #
-#     gca             : git commit all tracked changes                     #
-#     gco             : git checkout                                       #
-#     gcot            : git checkout                                       #
-#     gchekout        : git checkout (typo alias)                          #
-#     gchckout        : git checkout (typo alias)                          #
-#     gckout          : git checkout (typo alias)                          #
-#     gcb <branch>    : git checkout -b <branch>                           #
-#     gb              : git branch                                         #
-#     gpo <branch>    : git push origin <branch>                           #
-#     go <branch>     : git push -u origin <branch>                        #
-#     gpl <branch>    : git pull origin <branch>                           #
-#     gd              : git diff                                           #
-#     gsh             : git stash                                          #
-#     gw              : git whatchanged                                    #
-#     gundo           : undo last commit (keep changes staged)             #
-#     gclean          : hard reset + remove untracked files                #
-#     nah             : discard ALL local changes                          #
-#                                                                          #
-############################################################################
+source $ZSH/oh-my-zsh.sh
 
-alias gs="git status"
-alias gst="git status -sb"
-alias gl="git log"
-alias ga="git add"
-alias gaa="git add -A"
-alias gal="git add ."
-alias gall="git add ."
-alias gca="git commit -a"
-alias gc="git commit -m"
-alias gcot="git checkout"
-alias gchekout="git checkout"
-alias gco="git checkout"
-alias gcb="git checkout -b"
-alias gb="git branch"
-alias gpo="git push origin"
-alias gpl="git pull origin"
-alias gd="git diff"
-alias gclean="git reset --hard && git clean -df"
-alias gundo="git reset --soft HEAD~1"
-alias gchckout="git checkout"
-alias gckout="git checkout"
-alias go="git push -u origin"
-alias gsh='git stash'
-alias gw='git whatchanged'
-alias gitlg="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
-alias nah="git clean -df && git checkout -- ."
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='nvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch $(uname -m)"
+
+# Set personal aliases, overriding those provided by Oh My Zsh libs,
+# plugins, and themes. Aliases can be placed here, though Oh My Zsh
+# users are encouraged to define aliases within a top-level file in
+# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
+# - $ZSH_CUSTOM/aliases.zsh
+# - $ZSH_CUSTOM/macos.zsh
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 
-alias permissions="sudo chown $(whoami):$(whoami) -R . && sudo chmod g+rw -R ."
