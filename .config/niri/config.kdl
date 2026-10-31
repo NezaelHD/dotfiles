@@ -134,7 +134,7 @@ layout {
         // fixed 1920
     }
 
-    // You can also customize the heights that "switch-preset-window-height" (Mod+Shift+R) toggles between.
+    // You can also customize the heights that "switch-preset-window-height" (Mod+Ctrl+Shift+R) toggles between.
     // preset-window-heights { }
 
     // You can change the default width of the new windows.
@@ -167,7 +167,7 @@ layout {
         // - CSS-like notation: "rgb(255, 127, 0)", rgba(), hsl() and a few others.
 
         // Color of the ring on the active monitor.
-        active-color "#7fc8ff"
+        active-gradient from="#e5989b" to="#e5989b" angle=45 relative-to="workspace-view" in="oklch longer hue"
 
         // Color of the ring on inactive monitors.
         //
@@ -197,9 +197,9 @@ layout {
         // If you enable the border, you probably want to disable the focus ring.
         off
 
-        width 4
-        active-color "#ffc87f"
-        inactive-color "#505050"
+        width 2
+        active-gradient from="#f38ba8" to="#f9e2af" angle=45 relative-to="workspace-view"
+        inactive-gradient from="#585b70" to="#7f849c" angle=45 relative-to="workspace-view"
 
         // Color of the border around windows that request your attention.
         urgent-color "#9b0000"
@@ -267,8 +267,14 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-// This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar"
+// waybar, polkit et swaybg/swayidle sont lancés par les unités systemd user (niri.service.wants).
+// xwayland-satellite est lancé automatiquement par niri s'il est dans le PATH.
+// Applications ouvertes au démarrage :
+spawn-at-startup "brave-browser"
+spawn-at-startup "alacritty"
+spawn-at-startup "teams-for-linux"
+spawn-at-startup "yaak-app"
+spawn-at-startup "beekeeper-studio"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
@@ -339,11 +345,39 @@ window-rule {
     // block-out-from "screencast"
 }
 
-// Example: enable rounded corners for all windows.
-// (This example rule is commented out with a "/-" in front.)
-/-window-rule {
-    geometry-corner-radius 12
+blur {
+    passes 2
+    offset 2.0
+    noise 0.02
+    saturation 1.5
+}
+
+// Coins arrondis pour toutes les fenêtres.
+window-rule {
+    geometry-corner-radius 6
     clip-to-geometry true
+}
+
+// Terminal et explorateur : transparence avec flou.
+window-rule {
+    match app-id="^Alacritty$"
+    match app-id=r#"^org\.gnome\.Nautilus$"#
+    opacity 0.9
+    draw-border-with-background false
+    background-effect {
+        blur true
+    }
+}
+
+// Applications ouvertes maximisées (outils installés par le playbook).
+window-rule {
+    match app-id="^brave-browser$"
+    match app-id="^Alacritty$"
+    match app-id="^teams-for-linux$"
+    match app-id=r#"(?i)yaak"#
+    match app-id="^beekeeper-studio$"
+    match app-id=r#"^dev\.zed\.Zed$"#
+    open-maximized true
 }
 
 binds {
@@ -383,6 +417,7 @@ binds {
     // Example media keys mapping using playerctl.
     // This will work with any MPRIS-enabled media player.
     XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioPause       allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
     XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
     XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
@@ -399,6 +434,7 @@ binds {
     Mod+O repeat=false { toggle-overview; }
 
     Mod+Q repeat=false { close-window; }
+    Alt+F4 repeat=false { close-window; }
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
@@ -553,7 +589,9 @@ binds {
     Mod+R { switch-preset-column-width; }
     // Cycling through the presets in reverse order is also possible.
     // Mod+R { switch-preset-column-width-back; }
-    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Shift+R { switch-preset-column-width-back; }
+
+    Mod+Ctrl+Shift+R { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
