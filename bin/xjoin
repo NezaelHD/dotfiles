@@ -1,0 +1,19 @@
+#!/bin/bash
+
+xjoin() {
+    local f
+    local srt="sort -k 1b,1"
+
+    if [ "$#" -lt 2 ]; then
+            echo "xjoin: need at least 2 files" >&2
+            return 1
+    elif [ "$#" -lt 3 ]; then
+            join <($srt "$1") <($srt "$2")
+    else
+            f=$1
+            shift
+            join <($srt "$f") <(xjoin "$@")
+    fi
+}
+
+xjoin "$@"

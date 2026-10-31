@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo "/usr/local/bin/openfortivpn" vpn.azure.xenom.fr:444 --saml-login --half-internet-routes=1 --trusted-cert 1193a33f378a57247b720d079c26f62fa3ca4552a894bbc678ed81f7b88bf1cc

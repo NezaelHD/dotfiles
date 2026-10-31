@@ -88,6 +88,7 @@
          "format": "{}",
          "exec": "~/.config/waybar/calendar.sh",
          "return-type": "json",
+         "on-click": "~/.config/waybar/toggle_calendar.sh",
          "on-scroll-up": "~/.config/waybar/calendar.sh up",
          "on-scroll-down": "~/.config/waybar/calendar.sh down"
     },
@@ -141,6 +142,7 @@
     "clock": {
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
         "format": "{:%e %B %H:%M}",
+        "on-click": "~/.config/waybar/toggle_calendar.sh",
     },
     "cpu": {
         "format": "{usage}% ",

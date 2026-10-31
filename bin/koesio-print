@@ -1,0 +1,65 @@
+#!/bin/bash
+# Envoie des PDF à la file PaperCut (Mobility Print) en IPP direct.
+# Le job apparaît dans "Jobs Pending Release": badger sur l'imprimante pour le libérer.
+# (le backend ipp de CUPS boucle sur Validate-Job -> 503, d'où l'envoi direct avec ipptool)
+#   koesio-print                 envoie les PDF déposés par la file CUPS "Koesio-Print" (Ctrl+P)
+#   koesio-print fichier [...]   envoie ces fichiers (non-PDF convertis via cupsfilter)
+user=charley.cerdan
+uri=ipp://10.26.45.11:9163/printers/Mon-Imprimante-Kam
+base=$HOME/.local/share/koesio-print
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+cat > "$tmpdir/job.test" <<'EOF'
+{
+  NAME "Print-Job direct"
+  OPERATION Print-Job
+  GROUP operation-attributes-tag
+  ATTR charset attributes-charset utf-8
+  ATTR language attributes-natural-language en
+  ATTR uri printer-uri $uri
+  ATTR name requesting-user-name $user
+  ATTR name job-name $jobname
+  ATTR mimeMediaType document-format application/pdf
+  GROUP job-attributes-tag
+  ATTR integer copies 1
+  FILE $filename
+  STATUS successful-ok
+  STATUS successful-ok-ignored-or-substituted-attributes
+}
+EOF
+
+if [ $# -gt 0 ]; then
+  files=("$@"); from_pending=0
+else
+  shopt -s nullglob; files=("$base"/pending/*.pdf); from_pending=1
+  [ ${#files[@]} -gt 0 ] || { echo "Rien en attente (dépose via Ctrl+P sur Koesio-Print)."; exit 0; }
+fi
+
+export CUPS_USER=$user
+sent=0
+for f in "${files[@]}"; do
+  [ -f "$f" ] || { echo "Introuvable: $f"; continue; }
+  pdf=$f
+  # le pilote Generic PDF entoure le PDF d'un en-tête/pied PJL: on ne garde que %PDF-...%%EOF
+  if file -b "$f" | grep -q 'Printer Job Language'; then
+    python3 -I -c '
+import sys
+b = open(sys.argv[1], "rb").read()
+s, e = b.find(b"%PDF-"), b.rfind(b"%%EOF")
+sys.stdout.buffer.write(b[s:e + 6])' "$f" > "$tmpdir/stripped.pdf" && pdf=$tmpdir/stripped.pdf
+  fi
+  if [ "$(file -b --mime-type "$pdf")" != application/pdf ]; then
+    pdf=$tmpdir/$(basename "${f%.*}").pdf
+    cupsfilter -m application/pdf "$f" > "$pdf" 2>/dev/null
+    [ -s "$pdf" ] || { echo "Conversion en PDF impossible: $f"; continue; }
+  fi
+  name=$(basename "$f")
+  echo "-> $name"
+  echo "   Mot de passe de $user demandé ci-dessous (rien ne s'affiche pendant la saisie), puis Entrée."
+  if ipptool -t -d user="$user" -d filename="$pdf" -d jobname="$name" "$uri" "$tmpdir/job.test"; then
+    sent=$((sent+1))
+    [ $from_pending -eq 1 ] && mv "$f" "$base/sent/"
+  fi
+done
+echo "$sent document(s) envoyé(s). Va badger sur l'imprimante pour les libérer."

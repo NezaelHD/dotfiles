@@ -1,0 +1,13 @@
+{
+    "layer": "overlay",
+    "position": "top",
+    "height": 200,
+    "width": 300,
+    "modules-center": ["custom/calendar"],
+    "custom/calendar": {
+        "exec": "~/.config/waybar/calendar.sh",
+        "return-type": "json",
+        "on-scroll-up": "~/.config/waybar/calendar.sh up",
+        "on-scroll-down": "~/.config/waybar/calendar.sh down"
+    }
+}

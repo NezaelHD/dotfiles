@@ -1,0 +1,18 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: monospace;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar.calendar {
+    background: rgba(43, 48, 59, 0.9);
+    border: 2px solid #64727D;
+    border-radius: 5px;
+}
+
+#custom-calendar {
+    padding: 5px;
+    color: #ffffff;
+}

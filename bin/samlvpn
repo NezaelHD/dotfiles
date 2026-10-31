@@ -1,0 +1,8 @@
+#!/bin/bash
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+
+sudo echo 1
+url='vpn.grp.xenom.fr:444'
+cookie=$(openfortivpn-webview --ozone-platform=wayland --enable-logging --log-level=3 "$url" | sed 's/SVPNCOOKIE=//')
+sudo openfortivpn "$url" --cookie-on-stdin <<< "$cookie"
